@@ -14,16 +14,28 @@ from convnext import ConvNeXt
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ----------------------------
-# Model Download from Google Drive
+# Model and Checkpoint Download
 # ----------------------------
-model_url = "https://drive.google.com/uc?id=1ufgV3nykC73HFvR-JTvY0xWGID-buEok"
 
+# Google Drive file IDs
+model_url = "https://drive.google.com/uc?id=1ufgV3nykC73HFvR-JTvY0xWGID-buEok"  # ConvNeXt Tiny Weights
+checkpoint_url = "https://drive.google.com/uc?id=1VDy_rCM22iWcQf3YdYVLvw2LjFNXsJmT"  # New Checkpoint
+
+# File paths
 model_path = "convnext_tiny_1k_224_ema.pth"
+checkpoint_path = "checkpoint_epoch_20.pth"
 
+# Download model weights if not present
 if not os.path.exists(model_path):
-    st.write("Downloading model weights... Please wait ⏳")
+    st.write("Downloading ConvNeXt model weights... ⏳")
     gdown.download(model_url, model_path, quiet=False)
     st.write("Model downloaded successfully ✅")
+
+# Download checkpoint if not present
+if not os.path.exists(checkpoint_path):
+    st.write("Downloading model checkpoint... ⏳")
+    gdown.download(checkpoint_url, checkpoint_path, quiet=False)
+    st.write("Checkpoint downloaded successfully ✅")
 
 # ----------------------------
 # ConvNeXt Model Function
@@ -89,8 +101,6 @@ if uploaded_file is not None:
     st.image(image, caption="Uploaded Image", use_column_width=True)
 
     # Load Model
-    checkpoint_path = model_path
-
     if not os.path.exists(checkpoint_path):
         st.error(f"Checkpoint file not found at {checkpoint_path}")
     else:
@@ -102,7 +112,7 @@ if uploaded_file is not None:
             if 'model_state_dict' not in checkpoint:
                 st.error("Checkpoint does not contain 'model_state_dict' key.")
             else:
-                model.load_state_dict(checkpoint['model_state_dict'])
+                model.load_state_dict(checkpoint['model_state_dict'], strict=False)
                 model = model.to(device)
 
                 # Run inference on the uploaded image
