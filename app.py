@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import torch
+import gdown
 import numpy as np
 from PIL import Image
 from torchvision import transforms
@@ -13,11 +14,23 @@ from convnext import ConvNeXt
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ----------------------------
+# Model Download from Google Drive
+# ----------------------------
+model_url = "https://drive.google.com/uc?id=1ufgV3nykC73HFvR-JTvY0xWGID-buEok"
+
+model_path = "convnext_tiny_1k_224_ema.pth"
+
+if not os.path.exists(model_path):
+    st.write("Downloading model weights... Please wait ⏳")
+    gdown.download(model_url, model_path, quiet=False)
+    st.write("Model downloaded successfully ✅")
+
+# ----------------------------
 # ConvNeXt Model Function
 # ----------------------------
 def ConvNeXt_model():
     model_conv = ConvNeXt()
-    state_dict = torch.load('convnext_tiny_1k_224_ema.pth', map_location=device)
+    state_dict = torch.load(model_path, map_location=device)
     model_conv.load_state_dict(state_dict["model"])
     return model_conv
 
@@ -64,7 +77,7 @@ def test_single_image(model, image, device, temperature=2.0):
 # ----------------------------
 # Streamlit App
 # ----------------------------
-st.title("Deepfake Image Detection")
+st.title("Deepfake Detection App")
 st.write("Upload an image to check if it's **Fake** or **Real**.")
 
 # Upload Image
@@ -76,7 +89,7 @@ if uploaded_file is not None:
     st.image(image, caption="Uploaded Image", use_column_width=True)
 
     # Load Model
-    checkpoint_path = 'checkpoint_epoch_20 (2).pth'
+    checkpoint_path = model_path
 
     if not os.path.exists(checkpoint_path):
         st.error(f"Checkpoint file not found at {checkpoint_path}")
